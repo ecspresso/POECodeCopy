@@ -112,6 +112,7 @@
                                 <internalName>poecodecopy</internalName>
                                 <originalFilename>poecodecopy.exe</originalFilename>
                             </versionInfo>
+                            <icon>icon.ico</icon>
                         </configuration>
                     </execution>
                 </executions>
