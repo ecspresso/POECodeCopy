@@ -1,14 +1,8 @@
 package ecspresso.mail;
 
-import ch.qos.logback.core.util.FileUtil;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -24,7 +18,7 @@ public class PropertiesFile {
         properties.put("password", input.nextLine());
 
         System.out.printf("%-22s", "Enter IMAP host name:");
-        properties.put("server_in", input.nextLine());
+        properties.put("hostname", input.nextLine());
 
         System.out.printf("%-22s", "Enter IMAP host port:");
         properties.put("port_in", input.nextLine());

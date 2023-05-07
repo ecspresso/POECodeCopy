@@ -1,26 +1,22 @@
 package ecspresso.mail;
 
-import jakarta.mail.Address;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
-import jakarta.mail.NoSuchProviderException;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
-import jakarta.mail.Transport;
-import jakarta.mail.internet.MimeMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
 
 public class IMAPFolder {
     private final Properties properties;
     private String username;
     private String password;
+    private HashSet<String> parsedEmails = new HashSet<>();
 
     IMAPFolder() {
         properties = System.getProperties();
@@ -31,35 +27,34 @@ public class IMAPFolder {
     }
 
 
-    public synchronized ArrayList<Mail> parse() {
+    public synchronized ArrayList<Mail> parse() throws MessagingException, IOException {
         String folderToParseName = properties.getProperty("folder_to_parse");
         ArrayList<Mail> emailMessages = new ArrayList<>();
 
         // Koppla upp mot mejl servern.
         Session session = Session.getInstance(properties);
-        try {
-            Store store = session.getStore();
-            store.connect(username, password);
+        Store store = session.getStore();
+        store.connect(username, password);
 
 
-            // Hämta och öppna katalogen.
-            com.sun.mail.imap.IMAPFolder folderToParse = (com.sun.mail.imap.IMAPFolder) store.getFolder(folderToParseName);
-            // com.sun.mail.imap.IMAPFolder folderDeleted = (com.sun.mail.imap.IMAPFolder) store.getFolder(properties.getProperty("deleted_folder"));
-            folderToParse.open(Folder.READ_WRITE);
+        // Hämta och öppna katalogen.
+        com.sun.mail.imap.IMAPFolder folderToParse = (com.sun.mail.imap.IMAPFolder) store.getFolder(folderToParseName);
+        folderToParse.open(Folder.READ_WRITE);
 
-            // Hämta alla mejl i katalogen.
-            Message[] messages = folderToParse.getMessages();
-            for(Message msg : messages) {
-                emailMessages.add(new Mail(msg.getFrom(), msg.getSubject(), msg.getContent(), msg.getReceivedDate()));
+        // Hämta alla mejl i katalogen.
+        Message[] messages = folderToParse.getMessages();
+        for(Message msg : messages) {
+            String[] msgIdHeaders = msg.getHeader("Message-ID");
+            if (msgIdHeaders != null && msgIdHeaders.length > 0) {
+                String messageId = msgIdHeaders[0];
+                if(!parsedEmails.contains(messageId)) {
+                    parsedEmails.add(messageId);
+                    emailMessages.add(new Mail(msg.getFrom(), msg.getSubject(), msg.getContent(), msg.getSentDate()));
+                }
             }
-
-            // Flytta mejlen till papperskorgen.
-            // folderToParse.moveMessages(messages, folderDeleted);
-
-            folderToParse.close();
-        } catch (MessagingException | IOException e) {
-            throw new RuntimeException(e);
         }
+
+        folderToParse.close();
 
         return emailMessages;
     }
@@ -74,11 +69,11 @@ public class IMAPFolder {
         this.password = password;
     }
 
-    void setServerIn(String serverIn) {
+    void setHostName(String serverIn) {
         properties.setProperty("mail.imaps.host", serverIn);
     }
 
-    void setPortIn(String portIn) {
+    void setPort(String portIn) {
         properties.setProperty("mail.imaps.port", portIn);
     }
 

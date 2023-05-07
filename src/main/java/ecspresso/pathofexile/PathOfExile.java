@@ -3,22 +3,31 @@ package ecspresso.pathofexile;
 import java.util.Date;
 
 public class PathOfExile {
-    private static String content;
-    private static Date received = new Date(0);
+    private static String CONTENT;
+    private static Date SENT = new Date(0);
+    private static boolean NO_EMAIL = true;
 
     public static String getContent() {
-        return content;
+        return CONTENT;
     }
 
-    public static void setContent(String content) {
-        PathOfExile.content = content;
+    public static void setContent(String CONTENT) {
+        PathOfExile.CONTENT = CONTENT;
     }
 
-    public static Date getReceived() {
-        return received;
+    public static Date getSent() {
+        return SENT;
     }
 
-    public static void setReceived(Date received) {
-        PathOfExile.received = received;
+    public static void setSent(Date SENT) {
+        PathOfExile.SENT = SENT;
+    }
+
+    public static boolean noEmail() {
+        return NO_EMAIL;
+    }
+
+    public static void emailFound() {
+        PathOfExile.NO_EMAIL = false;
     }
 }

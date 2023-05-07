@@ -20,23 +20,13 @@ public class IMAPBuilder {
         return this;
     }
 
-    public IMAPBuilder setServerIn(String serverIn) {
-        imapFolder.setServerIn(serverIn);
+    public IMAPBuilder setHostName(String serverIn) {
+        imapFolder.setHostName(serverIn);
         return this;
     }
 
-    public IMAPBuilder setPortIn(String portIn) {
-        imapFolder.setPortIn(portIn);
-        return this;
-    }
-
-    public IMAPBuilder setServerOut(String serverOut) {
-        imapFolder.setServerOut(serverOut);
-        return this;
-    }
-
-    public IMAPBuilder setPortOut(String portOut) {
-        imapFolder.setPortOut(portOut);
+    public IMAPBuilder setPort(String portIn) {
+        imapFolder.setPort(portIn);
         return this;
     }
 
