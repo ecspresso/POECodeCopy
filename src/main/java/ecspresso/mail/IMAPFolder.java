@@ -1,22 +1,30 @@
 package ecspresso.mail;
 
+import ecspresso.input.IStoppableThread;
+import ecspresso.input.InputListener;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
+import jakarta.mail.event.MessageCountAdapter;
+import jakarta.mail.event.MessageCountEvent;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.search.FromTerm;
+import jakarta.mail.search.SearchTerm;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Properties;
 
-public class IMAPFolder {
+public class IMAPFolder implements IStoppableThread {
     private final Properties properties;
     private String username;
     private String password;
-    private HashSet<String> parsedEmails = new HashSet<>();
+    private com.sun.mail.imap.IMAPFolder folderToParse;
+    private Store store;
+    private Thread idleThread;
 
     IMAPFolder() {
         properties = System.getProperties();
@@ -26,43 +34,70 @@ public class IMAPFolder {
         properties.put("folder_to_parse", "Inbox");
     }
 
+    public void stopRunning() {
+        idleThread.interrupt();
 
-    public synchronized ArrayList<Mail> parse() throws MessagingException, IOException {
+        try {
+            folderToParse.close();
+            store.close();
+        } catch(MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void collectEmails(String fromAddress, IMessageHandler messageHandler) throws MessagingException {
         String folderToParseName = properties.getProperty("folder_to_parse");
-        ArrayList<Mail> emailMessages = new ArrayList<>();
 
         // Koppla upp mot mejl servern.
         Session session = Session.getInstance(properties);
-        Store store = session.getStore();
+        store = session.getStore();
         store.connect(username, password);
 
 
         // Hämta och öppna katalogen.
-        com.sun.mail.imap.IMAPFolder folderToParse = (com.sun.mail.imap.IMAPFolder) store.getFolder(folderToParseName);
+        folderToParse = (com.sun.mail.imap.IMAPFolder) store.getFolder(folderToParseName);
         folderToParse.open(Folder.READ_WRITE);
 
-        // Hämta alla mejl i katalogen.
-        Message[] messages = folderToParse.getMessages();
-        for(Message msg : messages) {
-            String[] msgIdHeaders = msg.getHeader("Message-ID");
-            if (msgIdHeaders != null && msgIdHeaders.length > 0) {
-                String messageId = msgIdHeaders[0];
-                if(!parsedEmails.contains(messageId)) {
-                    parsedEmails.add(messageId);
-                    emailMessages.add(new Mail(msg.getFrom(), msg.getSubject(), msg.getContent(), msg.getSentDate()));
+        folderToParse.addMessageCountListener(new MessageCountAdapter() {
+            public void messagesAdded(MessageCountEvent event) {
+                Message[] newMessages = event.getMessages();
+                try {
+                    messageHandler.handle(newMessages);
+                } catch(MessagingException | IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
+        });
+
+        // Hämta alla mejl i katalogen.
+        SearchTerm searchTerm = new FromTerm(new InternetAddress(fromAddress));
+        try {
+            Message[] messages = folderToParse.search(searchTerm);
+            if(messages.length > 0) {
+                messageHandler.handle(folderToParse.search(searchTerm));
+            } else {
+                System.out.println("Did not find any emails from support@grindinggear.com, waiting for new emails to arrive.");
+            }
+        } catch(IOException e) {
+            throw new RuntimeException(e);
         }
 
-        folderToParse.close();
-
-        return emailMessages;
+        idleThread = new Thread(() -> {
+            while(messageHandler.latestMessageAge().isBefore(LocalDateTime.now().minusMinutes(3))) {
+                try {
+                    folderToParse.idle();
+                } catch(MessagingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
 
     void setUsername(String username) {
         this.username = username;
         properties.setProperty("mail.imaps.user", username);
+        properties.setProperty("mail.imap.user", username);
     }
 
     void setPassword(String password) {
@@ -71,18 +106,12 @@ public class IMAPFolder {
 
     void setHostName(String serverIn) {
         properties.setProperty("mail.imaps.host", serverIn);
+        properties.setProperty("mail.imap.host", serverIn);
     }
 
     void setPort(String portIn) {
         properties.setProperty("mail.imaps.port", portIn);
-    }
-
-    void setServerOut(String serverOut) {
-        properties.put("mail.smtp.host", serverOut);
-    }
-
-    void setPortOut(String portOut) {
-        properties.put("mail.smtp.port", portOut);
+        properties.setProperty("mail.imap.port", portIn);
     }
 
     public void enableTLS() {

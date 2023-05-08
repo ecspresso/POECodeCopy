@@ -5,38 +5,34 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ecspresso</groupId>
-    <artifactId>POECodeCopy</artifactId>
-    <version>1.1.0</version>
-<!--    <packaging>jar</packaging>-->
+    <artifactId>${appName}</artifactId>
+    <version>${version}</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Variables -->
+        <appName>POECodeCopy</appName>
+        <version>2.0.0</version>
+        <executable>poecodecopy</executable>
+        <mainClass>ecspresso.Main</mainClass>
+        <icon>icon.ico</icon>
+        <fileDescription>Copy Path of Exile account unlock code from email</fileDescription>
+        <license>GNU General Public License v3.0</license>
+        <jdkPath>C:\Program Files\Eclipse Adoptium\jdk-17.0.6.10-hotspot</jdkPath>
+        <jdkPreference>preferJdk</jdkPreference>
+        <minJavaVersion>17.0.0</minJavaVersion>
+        <bundledJre64Bit>true</bundledJre64Bit>
+        <bundledJreAsFallback>true</bundledJreAsFallback>
+        <runtimeBits>64</runtimeBits>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>jakarta.mail</artifactId>
             <version>2.0.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>1.4.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.4.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.5</version>
         </dependency>
 
         <dependency>
@@ -64,7 +60,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>ecspresso.Main</mainClass>
+                            <mainClass>${mainClass}</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -90,29 +86,29 @@
                         </goals>
                         <configuration>
                             <headerType>console</headerType>
-                            <outfile>target/poecodecopy.exe</outfile>
-                            <jar>target/POECodeCopy-1.0.0-jar-with-dependencies.jar</jar>
-                            <errTitle>POECodeCopy</errTitle>
+                            <outfile>target/${executable}-${version}.exe</outfile>
+                            <jar>target/${appName}-${version}-jar-with-dependencies.jar</jar>
+                            <errTitle>${appName}</errTitle>
                             <jre>
-                                <path>C:\Program Files\Eclipse Adoptium\jdk-17.0.6.10-hotspot</path>
-                                <bundledJre64Bit>true</bundledJre64Bit>
-                                <bundledJreAsFallback>true</bundledJreAsFallback>
-                                <jdkPreference>preferJdk</jdkPreference>
-                                <runtimeBits>64</runtimeBits>
-                                <minVersion>17.0.0</minVersion>
+                                <path>${jdkPath}</path>
+                                <bundledJre64Bit>${bundledJre64Bit}</bundledJre64Bit>
+                                <bundledJreAsFallback>${bundledJreAsFallback}</bundledJreAsFallback>
+                                <jdkPreference>${jdkPreference}</jdkPreference>
+                                <runtimeBits>${runtimeBits}</runtimeBits>
+                                <minVersion>${minJavaVersion}</minVersion>
                             </jre>
                             <versionInfo>
-                                <fileVersion>1.0.0.0</fileVersion>
-                                <txtFileVersion>1.0.0</txtFileVersion>
-                                <fileDescription>Copy Path of Exile account unlock code from email</fileDescription>
-                                <copyright>GNU General Public License v3.0</copyright>
-                                <productVersion>1.0.0.0</productVersion>
-                                <txtProductVersion>1.0.0</txtProductVersion>
-                                <productName>POECodeCopy</productName>
-                                <internalName>poecodecopy</internalName>
-                                <originalFilename>poecodecopy.exe</originalFilename>
+                                <fileVersion>${version}.0</fileVersion>
+                                <txtFileVersion>${version}</txtFileVersion>
+                                <fileDescription>${fileDescription}</fileDescription>
+                                <copyright>${license}</copyright>
+                                <productVersion>${version}.0</productVersion>
+                                <txtProductVersion>${version}</txtProductVersion>
+                                <productName>${appName}</productName>
+                                <internalName>${appName}</internalName>
+                                <originalFilename>${executable}.exe</originalFilename>
                             </versionInfo>
-                            <icon>icon.ico</icon>
+                            <icon>${icon}</icon>
                         </configuration>
                     </execution>
                 </executions>
